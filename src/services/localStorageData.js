@@ -1,7 +1,7 @@
 export const setToLocalStorage = (data) =>
-  localStorage.setItem("data", JSON.stringify(data));
+  localStorage.setItem("time_tracker", JSON.stringify(data));
 export const getFromLocalStorage = () =>
-  JSON.parse(localStorage.getItem("data")) || initialState;
+  JSON.parse(localStorage.getItem("time_tracker")) || initialState;
 
 const initialState = {
   inputValue: "",
