@@ -1,69 +1,98 @@
 import * as actionTypes from "./actions";
+import {
+  getFromLocalStorage,
+  setToLocalStorage,
+} from "../services/localStorageData";
+import { DateTime } from "luxon";
 
-const initialState = {
-  inputValue: "",
-  timers: [
-    {
-      name: "No name tracker #1",
-      isActive: true,
-      time: "00:00:00",
-    },
-    {
-      name: "No name tracker #2",
-      isActive: false,
-      time: "01:32:27",
-    },
-    {
-      name: "No name tracker #3",
-      isActive: false,
-      time: "25:11:03",
-    },
-  ],
-};
+const initialState = getFromLocalStorage();
 
 export const reducer = (store = initialState, action) => {
   switch (action.type) {
-    case actionTypes.ADD_TIMER:
-      return {
+    case actionTypes.ADD_TIMER: {
+      const result = {
         ...store,
         timers: [
           {
-            name: store.inputValue.trim() ? store.inputValue : Date.now(),
+            name: store.inputValue.trim()
+              ? store.inputValue
+              : DateTime.now().toLocaleString(
+                  DateTime.DATETIME_MED_WITH_SECONDS
+                ),
+            lastStartTime: Date.now(),
+            countTime: 0,
             isActive: true,
-            time: "00:00:00",
           },
           ...store.timers,
         ],
+        inputValue: "",
       };
-    case actionTypes.INPUT_CHANGE: {
+      setToLocalStorage(result);
+      return result;
+    }
+    case actionTypes.INPUT_CHANGE:
       return {
         ...store,
         inputValue: action.name,
       };
-    }
-    case actionTypes.DELETE_TIMER:
-      return {
+    case actionTypes.DELETE_TIMER: {
+      const result = {
         ...store,
         timers: store.timers.filter((i) => i !== action.timer),
       };
-    case actionTypes.PAUSE_TIMER:
-      return {
+      setToLocalStorage(result);
+      return result;
+    }
+    case actionTypes.PAUSE_TIMER: {
+      const result = {
         ...store,
         timers: store.timers.map((item) =>
-          item.name === action.name
-            ? { ...item, isActive: !item.isActive }
+          item === action.timer
+            ? {
+                ...item,
+                isActive: !item.isActive,
+                countTime: item.countTime + (Date.now() - item.lastStartTime),
+                lastStartTime: 0,
+              }
             : item
         ),
       };
-    case actionTypes.PLAY_TIMER:
-      return {
+      setToLocalStorage(result);
+      return result;
+    }
+    case actionTypes.PLAY_TIMER: {
+      const result = {
         ...store,
         timers: store.timers.map((item) =>
-          item.name === action.name
-            ? { ...item, isActive: !item.isActive }
+          item === action.timer
+            ? {
+                ...item,
+                isActive: !item.isActive,
+                lastStartTime: Date.now(),
+              }
             : item
         ),
       };
+      setToLocalStorage(result);
+      return result;
+    }
+    case actionTypes.UPGRADE_TIMER:
+      const date = Date.now();
+      const result = {
+        ...store,
+        timers: store.timers.map((item) => {
+          if (item.isActive) {
+            return {
+              ...item,
+              countTime: item.countTime + (date - item.lastStartTime),
+              lastStartTime: date,
+            };
+          }
+          return item;
+        }),
+      };
+      setToLocalStorage(result);
+      return result;
     default:
       return store;
   }

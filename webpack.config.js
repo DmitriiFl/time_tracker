@@ -19,13 +19,14 @@ module.exports = {
         use: ["style-loader", "css-loader"],
       },
       {
-        test: /\.png$/i,
+        test: /\.(png|ico)$/i,
         loader: "file-loader",
       },
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
+      favicon: "./src/images/favicon.png",
       template: "./src/index.html",
     }),
   ],
